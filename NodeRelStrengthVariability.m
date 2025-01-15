@@ -31,6 +31,8 @@ end
 if normalisation == 1
     W = W./max(max(abs(W)));
 end
+windowed_StrVar = 0
+hierarchical_variability = 0
 
 W2 = (sum(W,2)-W);
 W2 = W2./permute(W2,[2 1 3]);
