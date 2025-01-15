@@ -1,8 +1,10 @@
-function [NodeRelStrength, StrengthVariability, windowed_StrVar] = NodeRelStrengthVariability(W,weighted, direction, normalisation,window_size)
+function [NodeRelStrength, StrengthVariability, windowed_StrVar, hierarchical_variability] = NodeRelStrengthVariability(W,weighted, direction, normalisation,window_size)
 %Parameters:    W = Structural Connectome R x R x N
 %               weighted = 1 for weighted average, 0 for unweighted
 %               (default 0)
 %               direction = 1 for arithmetic mean, 2 for harmonic mean
+%               normalisation = 1 for normalisation to [0, 1], 0 for no normalisation (default 0)
+%               window_size = n<= number of nodes in graph, window size for calculating hierarchical variability measure
 %Output:        NodeRelStrength = overall node strength relative to its
 %                         neighbourhood
 
@@ -25,13 +27,6 @@ end
 if nargin < 5
     window_size = size(w,1);
 end
-%{
-Quantiles = quantile(nodedegree,tiernum);
-DegTiers = 1;
-for tiers = 1:tiernum
-    DegTiers = DegTiers + (nodedegree < Quantiles(tiers,:));
-end
-%}
 
 if normalisation == 1
     W = W./max(max(abs(W)));
@@ -71,13 +66,6 @@ for i = 1:size(windowed_StrVar,2)
     windowed_StrVar(:,i) = std(NodeRelStrength_sorted(i:i+Window_size-1,:));
 end
 
-%NodeRelStrengthcell = num2cell(NodeRelStrength,1);
-%DegTierscell = num2cell(DegTiers,1);
-%GroupCell = cellfun(@findgroups,DegTierscell,'UniformOutput',false);
-%F1 = @(x,y) splitapply(@nanvar,x,y);
-%F2 = @(x) nansum(x)./nansum(x>0);
-%TieredVariability = cellfun(F1,NodeRelStrengthcell,GroupCell,'UniformOutput',false);
-%TieredVariabilityM = cellfun(F2,TieredVariability');
-
+hierarchical_variability = mean(windowed_StrVar, 2)
 
 clear Average
