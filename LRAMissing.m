@@ -1,4 +1,7 @@
 function [lowApprox, PCA_score] = LRAMissing(X,rank)
+
+% Low Rank Approximation method for computing PCA score on incomplete data
+
 XComplete = X(all(~isnan(X),2),:);
 [~,C,S] = normalize(XComplete);
 XNormed = normalize(X,'center',C,'scale',S);
