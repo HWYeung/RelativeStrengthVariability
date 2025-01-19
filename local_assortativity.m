@@ -1,4 +1,6 @@
 function [Local_assort] = local_assortativity(W)
+% W = R x R x N matrix where R is the number of nodes in Adjacency matrix and 
+%                            N is the number of participants
 
 M = sum(W,[1 2]);
 Mask = W;
