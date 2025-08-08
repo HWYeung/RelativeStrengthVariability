@@ -1,5 +1,5 @@
 # RelativeStrengthVariability
-Code for paper: Relative strength variability measures for brain structural connectomes and their relationship with cognitive functioning
+Code for paper: Relative strength variability measures for brain structural connectomes and their relationship with cognitive functioning: https://onlinelibrary.wiley.com/doi/10.1002/hbm.70314
 - `NodeRelativeStrengthVariability.m` is used for computing the RSV and hierarchical RSV measures
 - `GSRegressResid.m` is for extracting incremental contribution in predicting $g$ in the progressive models
 - `LRAMissing.m`, Low-rank Approximation, is used in extracting the g-factor for incomplete data
