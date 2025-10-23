@@ -33,3 +33,4 @@ All required files have been uploaded to the UK Biobank to facilitate replicatio
 
 - Ensure all scripts are run in the correct directory and required MATLAB toolboxes are installed.  
 - Outputs of each step (connectomes, graph measures, RSV metrics) are required for subsequent analysis steps.
+- Differences between Python and MATLAB results arise because Python’s standard deviation uses `sqrt(n)` and MATLAB uses `sqrt(n-1)` by default.
