@@ -1,4 +1,6 @@
-def RSV_exact(W, weighted=0, direction=1, window_size=None, normalisation=0):
+import numpy as np
+
+def rsv_exact(W, weighted=0, direction=1, window_size=None, normalisation=0):
     """
     Compute Node Relative Strength and its variability, matching MATLAB version.
 
@@ -17,61 +19,65 @@ def RSV_exact(W, weighted=0, direction=1, window_size=None, normalisation=0):
 
     Returns
     -------
-    NodeRelStrength : ndarray, shape (R, N)
-    StrengthVariability : ndarray, shape (N,)
-    windowed_StrVar : ndarray, shape (N, ?)
+    node_rs : ndarray, shape (R, N)
+    rsv : ndarray, shape (N,)
+    windowed_str_var : ndarray, shape (N, ?)
+    h_rsv : float
     """
 
-    # Ensure 3D
+    # Ensure 3D array
     if W.ndim == 2:
         W = W[:, :, np.newaxis]
 
-    R, _, N = W.shape
+    n_nodes, _, n_networks = W.shape
     if window_size is None:
-        window_size = R
+        window_size = n_nodes
 
     # Normalise if needed
     if normalisation:
         W = W / np.max(np.abs(W))
 
     # Compute relative strength
-    W2 = np.sum(W, axis=1, keepdims=True) - W          # sum over rows minus self
-    W2 = W2 / np.transpose(W2, (1, 0, 2))             # normalize by column sum
+    rel_strength_matrix = np.sum(W, axis=1, keepdims=True) - W
+    rel_strength_matrix = rel_strength_matrix / np.transpose(rel_strength_matrix, (1, 0, 2))
+    
     mask = (W > 0).astype(float)
-    Average = np.sum(mask * W2, axis=direction-1) / np.sum(mask, axis=direction-1)
+    average_strength = np.sum(mask * rel_strength_matrix, axis=direction-1) / np.sum(mask, axis=direction-1)
 
     if direction == 1:
-        NodeRelStrength = 1 / np.squeeze(Average)
+        node_rs = 1 / np.squeeze(average_strength)
     else:
-        NodeRelStrength = np.squeeze(Average)
+        node_rs = np.squeeze(average_strength)
 
-    if NodeRelStrength.ndim == 1:
-        NodeRelStrength = NodeRelStrength[:, np.newaxis]
+    if node_rs.ndim == 1:
+        node_rs = node_rs[:, np.newaxis]
 
-    # Variability
+    # Compute variability
     if weighted == 0:
-        StrengthVariability = np.std(NodeRelStrength, axis=0)
+        rsv = np.std(node_rs, axis=0)
     else:
-        Strength = np.squeeze(np.sum(W, axis=1))
-        Weightings = Strength / np.sum(Strength, axis=0)
-        WeightedMean = np.sum(NodeRelStrength * Weightings, axis=0)
-        SquaredNodeRel = (NodeRelStrength - WeightedMean)**2
-        StrengthVariability = np.sqrt(np.sum(Weightings * SquaredNodeRel, axis=0))
+        total_strength = np.squeeze(np.sum(W, axis=1))
+        weightings = total_strength / np.sum(total_strength, axis=0)
+        weighted_mean = np.sum(node_rs * weightings, axis=0)
+        squared_diff = (node_rs - weighted_mean) ** 2
+        rsv = np.sqrt(np.sum(weightings * squared_diff, axis=0))
 
     # Early return if full window
-    if window_size == R:
-        windowed_StrVar = None
-        return NodeRelStrength, StrengthVariability, windowed_StrVar
+    if window_size == n_nodes:
+        windowed_str_var = None
+        h_rsv = np.nan
+        return node_rs, rsv, windowed_str_var, h_rsv
 
     # Sliding window variability
-    MeanNodeStrength = np.mean(np.sum(W, axis=1), axis=1)
-    NodeStrengthOrder = np.argsort(MeanNodeStrength)
-    NodeRelStrength_sorted = NodeRelStrength[NodeStrengthOrder, :]
-    Window_size = int(np.floor(R * window_size))
-    windowed_StrVar = np.zeros((N, R - Window_size + 1))
-    for i in range(R - Window_size + 1):
-        windowed_StrVar[:, i] = np.std(NodeRelStrength_sorted[i:i+Window_size, :], axis=0)
-    h_RSV = np.nanmean(windowed_StrVar)
-    RSV = StrengthVariability
+    mean_node_strength = np.mean(np.sum(W, axis=1), axis=1)
+    node_strength_order = np.argsort(mean_node_strength)
+    node_rs_sorted = node_rs[node_strength_order, :]
 
-    return NodeRelStrength, RSV, windowed_StrVar, h_RSV
+    window_size = int(np.floor(n_nodes * window_size))
+    windowed_str_var = np.zeros((n_networks, n_nodes - window_size + 1))
+    for i in range(n_nodes - window_size + 1):
+        windowed_str_var[:, i] = np.std(node_rs_sorted[i:i+window_size, :], axis=0)
+
+    h_rsv = np.nanmean(windowed_str_var)
+
+    return node_rs, rsv, windowed_str_var, h_rsv
