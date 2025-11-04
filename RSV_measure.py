@@ -72,12 +72,11 @@ def rsv_exact(W, weighted=0, direction=1, window_size=None, normalisation=0):
     mean_node_strength = np.mean(np.sum(W, axis=1), axis=1)
     node_strength_order = np.argsort(mean_node_strength)
     node_rs_sorted = node_rs[node_strength_order, :]
-
-    window_size = int(np.floor(n_nodes * window_size))
     windowed_str_var = np.zeros((n_networks, n_nodes - window_size + 1))
     for i in range(n_nodes - window_size + 1):
         windowed_str_var[:, i] = np.std(node_rs_sorted[i:i+window_size, :], axis=0)
 
-    h_rsv = np.nanmean(windowed_str_var)
+    h_rsv = np.nanmean(windowed_str_var, axis=1)
 
     return node_rs, rsv, windowed_str_var, h_rsv
+
