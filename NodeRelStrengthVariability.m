@@ -33,7 +33,7 @@ end
 
 % Compute variability
 if weighted == 0
-    StrengthVariability = std(NodeRelStrength, 0, 2);
+    StrengthVariability = std(NodeRelStrength)';
 else
     total_strength = squeeze(sum(W, 1));
     weight = total_strength ./ sum(total_strength);
@@ -58,3 +58,4 @@ if window_size < R
     
     hierarchical_variability = mean(windowed_StrVar, 2);
 end
+
